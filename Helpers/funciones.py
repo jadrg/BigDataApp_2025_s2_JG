@@ -14,7 +14,7 @@ class Funciones:
 
     @staticmethod
     def crear_carpeta(ruta: str) -> bool:
-        """Crea una carpeta si no existe"""
+        """Crea una carpeta si no existe."""
         try:
             if not os.path.exists(ruta):
                 os.makedirs(ruta)
@@ -25,26 +25,27 @@ class Funciones:
 
     @staticmethod
     def descomprimir_zip_local(ruta_file_zip: str, ruta_descomprimir: str) -> List[Dict]:
-        """Descomprime un archivo ZIP y retorna info de archivos"""
+        """Descomprime un ZIP local y retorna información de archivos extraídos."""
         archivos = []
         try:
             with zipfile.ZipFile(ruta_file_zip, 'r') as zip_ref:
                 for file_info in zip_ref.namelist():
-                    if not file_info.endswith('/'):
+                    if file_info.endswith('/'):
+                        continue
 
-                        carpeta = os.path.dirname(file_info)
-                        nombre_archivo = os.path.basename(file_info)
-                        extension = os.path.splitext(nombre_archivo)[1].lower()
+                    carpeta = os.path.dirname(file_info)
+                    nombre_archivo = os.path.basename(file_info)
+                    extension = os.path.splitext(nombre_archivo)[1].lower()
 
-                        # Solo procesar txt, pdf y json
-                        if extension in ['.txt', '.pdf', '.json']:
-                            zip_ref.extract(file_info, ruta_descomprimir)
-                            archivos.append({
-                                'carpeta': carpeta if carpeta else 'raiz',
-                                'nombre': nombre_archivo,
-                                'ruta': os.path.join(ruta_descomprimir, file_info),
-                                'extension': extension
-                            })
+                    if extension in ['.txt', '.pdf', '.json']:
+                        zip_ref.extract(file_info, ruta_descomprimir)
+                        archivos.append({
+                            'carpeta': carpeta or 'raiz',
+                            'nombre': nombre_archivo,
+                            'ruta': os.path.join(ruta_descomprimir, file_info),
+                            'extension': extension
+                        })
+
             return archivos
         except Exception as e:
             print(f"Error al descomprimir ZIP: {e}")
@@ -52,7 +53,7 @@ class Funciones:
 
     @staticmethod
     def descargar_y_descomprimir_zip(url: str, carpeta_destino: str, tipoArchivo: str = '') -> List[Dict]:
-        """Descarga y descomprime un ZIP desde URL"""
+        """Descarga un ZIP desde URL y lo descomprime."""
         try:
             Funciones.crear_carpeta(carpeta_destino)
 
@@ -68,20 +69,19 @@ class Funciones:
             os.remove(zip_path)
 
             return archivos
+
         except Exception as e:
-            print(f"Error al descargar y descomprimir: {e}")
+            print(f"Error al descargar/descomprimir ZIP: {e}")
             return []
 
     @staticmethod
     def allowed_file(filename: str, extensions: List[str]) -> bool:
-        """Verifica si un archivo tiene extensión permitida"""
+        """Valida si un archivo tiene extensión permitida."""
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in extensions
 
     @staticmethod
     def borrar_contenido_carpeta(ruta: str) -> bool:
-        """
-        Borra el contenido de una carpeta sin eliminar la carpeta misma
-        """
+        """Borra todo el contenido de una carpeta sin eliminarla."""
         try:
             if not os.path.exists(ruta):
                 return True
@@ -102,92 +102,98 @@ class Funciones:
                     return False
 
             return True
+
         except Exception as e:
-            print(f"Error al borrar contenido de carpeta: {e}")
+            print(f"Error al borrar contenido: {e}")
             return False
 
     @staticmethod
     def extraer_texto_pdf(ruta_pdf: str) -> str:
-        """Extrae texto de un archivo PDF"""
+        """Extrae texto de un PDF (no escaneado)."""
         try:
             texto = ""
             with open(ruta_pdf, 'rb') as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 for page in pdf_reader.pages:
-                    texto += page.extract_text() + "\n"
+                    texto += (page.extract_text() or "") + "\n"
             return texto.strip()
         except Exception as e:
-            print(f"Error al extraer texto del PDF {ruta_pdf}: {e}")
+            print(f"Error al extraer texto PDF {ruta_pdf}: {e}")
             return ""
 
     @staticmethod
     def extraer_texto_pdf_ocr(ruta_pdf: str) -> str:
-        """Extrae texto de un PDF usando OCR (útil para PDFs escaneados)"""
+        """Extrae texto de un PDF escaneado mediante OCR."""
         try:
             from pdf2image import convert_from_path
 
             images = convert_from_path(ruta_pdf)
-
             texto = ""
+
             for image in images:
                 texto += pytesseract.image_to_string(image, lang='spa') + "\n"
 
             return texto.strip()
+
         except Exception as e:
-            print(f"Error al extraer texto con OCR del PDF {ruta_pdf}: {e}")
+            print(f"Error OCR en PDF {ruta_pdf}: {e}")
             return ""
 
     @staticmethod
     def listar_archivos_json(ruta_carpeta: str) -> List[Dict]:
-        """Lista todos los archivos JSON en una carpeta"""
-        archivos_json = []
+        """Lista archivos JSON en un directorio."""
         try:
             if not os.path.exists(ruta_carpeta):
                 return []
 
+            archivos = []
             for archivo in os.listdir(ruta_carpeta):
                 if archivo.lower().endswith('.json'):
-                    ruta_completa = os.path.join(ruta_carpeta, archivo)
-                    archivos_json.append({
+                    ruta = os.path.join(ruta_carpeta, archivo)
+                    archivos.append({
                         'nombre': archivo,
-                        'ruta': ruta_completa,
-                        'tamaño': os.path.getsize(ruta_completa)
+                        'ruta': ruta,
+                        'tamaño': os.path.getsize(ruta)
                     })
 
-            return archivos_json
+            return archivos
+
         except Exception as e:
-            print(f"Error al listar archivos JSON: {e}")
+            print(f"Error listando JSON: {e}")
             return []
 
     @staticmethod
     def listar_archivos_carpeta(ruta_carpeta: str, extensiones: List[str] = None) -> List[Dict]:
-        """Lista archivos en una carpeta filtrando por extensión"""
-        archivos = []
+        """Lista archivos del directorio filtrados por extensión."""
         try:
             if not os.path.exists(ruta_carpeta):
                 return []
 
+            archivos = []
+
             for archivo in os.listdir(ruta_carpeta):
-                ruta_completa = os.path.join(ruta_carpeta, archivo)
-                if os.path.isfile(ruta_completa):
+                ruta = os.path.join(ruta_carpeta, archivo)
+                if os.path.isfile(ruta):
+
                     extension = os.path.splitext(archivo)[1].lower().replace('.', '')
 
                     if extensiones is None or extension in extensiones:
                         archivos.append({
                             'nombre': archivo,
-                            'ruta': ruta_completa,
+                            'ruta': ruta,
                             'extension': extension,
-                            'tamaño': os.path.getsize(ruta_completa)
+                            'tamaño': os.path.getsize(ruta)
                         })
 
             return archivos
+
         except Exception as e:
-            print(f"Error al listar archivos: {e}")
+            print(f"Error listando archivos: {e}")
             return []
 
     @staticmethod
     def leer_json(ruta_json: str) -> Dict:
-        """Lee un archivo JSON"""
+        """Lee un archivo JSON desde disco."""
         try:
             with open(ruta_json, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -197,7 +203,7 @@ class Funciones:
 
     @staticmethod
     def guardar_json(ruta_json: str, datos: Dict) -> bool:
-        """Guarda datos en un archivo JSON"""
+        """Guarda datos en un archivo JSON."""
         try:
             directorio = os.path.dirname(ruta_json)
             if directorio:
@@ -206,6 +212,7 @@ class Funciones:
             with open(ruta_json, 'w', encoding='utf-8') as f:
                 json.dump(datos, f, indent=4, ensure_ascii=False)
             return True
+
         except Exception as e:
             print(f"Error al guardar JSON: {e}")
             return False
