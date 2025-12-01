@@ -1,226 +1,201 @@
-import requests
-from bs4 import BeautifulSoup
-import json
-from urllib.parse import urljoin
 import os
+import json
+import time
 from typing import List, Dict
+
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 from Helpers import Funciones
 
 
 class WebScraping:
-    """Clase para realizar web scraping y extracción de enlaces"""
+    """
+    WebScraping con Selenium adaptado a tu proyecto Flask:
+    - Usa Selenium (igual que tu .ipynb)
+    - Recorre secciones (Leyes, Decretos, etc.)
+    - Extrae PDF, DOCX, XLSX
+    - Guarda JSON en static/uploads
+    """
 
-    def __init__(self, dominio_base: str = "https://www.minsalud.gov.co/Normativa/"):
-        self.dominio_base = dominio_base
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/91.0.4472.124 Safari/537.36'
-            )
-        })
+    # ================================
+    # SECCIONES A SCRAPEAR
+    # ================================
+    SECCIONES = {
+        "Leyes": "https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3ALey",
+        "Decretos": "https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3ADecreto",
+        "Resoluciones": "https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3AResoluci%C3%B3n",
+        "Conceptos_Juridicos": "https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3AConcepto",
+        "Circulares":"https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3ACircular#views-exposed-form-normativa-block-1"
+        # "Agenda_Regulatoria": "https://minvivienda.gov.co/normativa?f%5B0%5D=tipo_normativa%3AAgenda%20Regulatoria"
+    }
+
+    DOMINIO = "https://minvivienda.gov.co"
+
+    def __init__(self, headless: bool = True):
+        """
+        Inicializa Selenium con opciones compatibles en Windows y Render.
+        """
+        chrome_options = Options()
+
+        if headless:
+            chrome_options.add_argument("--headless=new")
+
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        self.driver = webdriver.Chrome(options=chrome_options)
 
     # ===============================================================
-    # EXTRAER LINKS DESDE UNA PÁGINA
+    # EXTRAER LINKS DE UNA SECCIÓN
     # ===============================================================
-    def extract_links(self, url: str, listado_extensiones: List[str] = None) -> List[Dict]:
-        """Extrae links internos según extensiones (pdf, aspx, php, etc.)"""
-
-        if listado_extensiones is None:
-            listado_extensiones = ['pdf', 'aspx']
+    def extraer_links_seccion(self, url_seccion: str) -> List[Dict]:
+        """Extrae enlaces de la sección con paginación."""
+        links = []
 
         try:
-            response = self.session.get(url, timeout=30)
-            response.raise_for_status()
+            self.driver.get(url_seccion)
+            time.sleep(2)
 
-            soup = BeautifulSoup(response.content, 'lxml')
-            container_div = soup.find('div', class_='containerblanco')
+            while True:
+                html = self.driver.page_source
+                soup = BeautifulSoup(html, "lxml")
 
-            links = []
-            if container_div:
-                for link in container_div.find_all('a'):
-                    href = link.get('href')
+                elementos = soup.select("div.views-row a")
+
+                for tag in elementos:
+                    href = tag.get("href")
                     if not href:
                         continue
 
-                    full_url = urljoin(url, href)
+                    # Si el href YA es una URL completa → NO concatenar dominio
+                    if href.startswith("http"):
+                        url_completa = href
+                    else:
+                        url_completa = f"{self.DOMINIO}{href}"
 
-                    for ext in listado_extensiones:
-                        ext_lower = ext.strip().lower()
-                        if full_url.lower().endswith(f'.{ext_lower}'):
-                            links.append({'url': full_url, 'type': ext_lower})
-                            break
+                    # Guardar solo documentos útiles
+                    if url_completa.lower().endswith((".pdf", ".docx", ".xlsx")):
+                        extension = url_completa.split(".")[-1].lower()
+                        links.append({
+                            "url": url_completa,
+                            "type": extension
+                        })
 
-            return links
+                # Buscar el botón de siguiente página
+                boton = soup.select_one("li.pager__item--next a")
+                if boton:
+                    next_href = boton.get("href")
+
+                    if next_href.startswith("http"):
+                        siguiente = next_href
+                    else:
+                        siguiente = f"{self.DOMINIO}{next_href}"
+
+                    self.driver.get(siguiente)
+                    time.sleep(2)
+                else:
+                    break
 
         except Exception as e:
-            print(f"Error procesando {url}: {e}")
-            return []
+            print(f"Error en la sección {url_seccion}: {e}")
+
+        return links
 
     # ===============================================================
-    # EXTRAER TODOS LOS LINKS RECURSIVAMENTE
+    # RECORRER TODAS LAS SECCIONES Y GUARDAR JSON
     # ===============================================================
-    def extraer_todos_los_links(
-        self,
-        url_inicial: str,
-        json_file_path: str,
-        listado_extensiones: List[str] = None,
-        max_iteraciones: int = 100
-    ) -> Dict:
+    def extraer_todos_los_links(self, json_destino: str) -> Dict:
+        """
+        Recorre todas las secciones y guarda los links en un JSON.
+        """
+        carpeta = os.path.dirname(json_destino)
+        Funciones.crear_carpeta(carpeta)
+        Funciones.borrar_contenido_carpeta(carpeta)
 
-        if listado_extensiones is None:
-            listado_extensiones = ['pdf', 'aspx']
+        todos = []
 
-        all_links = self._cargar_links_desde_json(json_file_path)
+        for nombre, url_seccion in self.SECCIONES.items():
+            print(f"\n=== Scraping sección: {nombre} ===")
+            lista = self.extraer_links_seccion(url_seccion)
 
-        if not all_links:
-            all_links = self.extract_links(url_inicial, listado_extensiones)
+            for l in lista:
+                l["seccion"] = nombre
 
-        # filtrar solo links del dominio
-        all_links = [
-            link for link in all_links
-            if link['url'].startswith(self.dominio_base)
-        ]
+            todos.extend(lista)
 
-        aspx_links_to_visit = [
-            link['url'] for link in all_links
-            if link['type'] == 'aspx'
-        ]
-
-        visited = set()
-        iteraciones = 0
-
-        while aspx_links_to_visit and iteraciones < max_iteraciones:
-            iteraciones += 1
-            current = aspx_links_to_visit.pop(0)
-
-            if current in visited:
-                continue
-
-            visited.add(current)
-
-            new_links = self.extract_links(current, listado_extensiones)
-
-            for link in new_links:
-                if not any(link['url'] == x['url'] for x in all_links):
-                    all_links.append(link)
-
-                    if link['type'] == 'aspx' and link['url'] not in visited:
-                        aspx_links_to_visit.append(link['url'])
-
-        # filtrado final
-        all_links = [
-            link for link in all_links
-            if link['url'].startswith(self.dominio_base)
-        ]
-
-        # guardar JSON
-        self._guardar_links_en_json(json_file_path, {"links": all_links})
+        # Guardar JSON
+        self._guardar_links(json_destino, todos)
 
         return {
-            'success': True,
-            'total_links': len(all_links),
-            'links': all_links,
-            'iteraciones': iteraciones
+            "success": True,
+            "total_links": len(todos),
+            "links": todos
         }
 
     # ===============================================================
-    # JSON - CARGAR Y GUARDAR
+    # DESCARGAR PDFs USANDO REQUESTS
     # ===============================================================
-    def _cargar_links_desde_json(self, json_file_path: str) -> List[Dict]:
-        if os.path.exists(json_file_path):
+    def descargar_pdfs(self, json_path: str, carpeta_destino: str = "static/uploads") -> Dict:
+
+        links = self._cargar_links(json_path)
+        pdfs = [l for l in links if l["type"] == "pdf"]
+
+        Funciones.crear_carpeta(carpeta_destino)
+        Funciones.borrar_contenido_carpeta(carpeta_destino)
+
+        import requests
+
+        descargados = 0
+        errores = []
+
+        for link in pdfs:
+            url = link["url"]
+            nombre = os.path.basename(url)
+            destino = os.path.join(carpeta_destino, nombre)
+
             try:
-                with open(json_file_path, 'r', encoding='utf-8') as f:
-                    return json.load(f).get("links", [])
-            except Exception:
-                return []
-        return []
+                res = requests.get(url, timeout=30)
+                res.raise_for_status()
 
-    def _guardar_links_en_json(self, json_file_path: str, data: Dict):
-        try:
-            carpeta = os.path.dirname(json_file_path)
-            if carpeta:
-                os.makedirs(carpeta, exist_ok=True)
+                with open(destino, "wb") as f:
+                    f.write(res.content)
 
-            with open(json_file_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
+                descargados += 1
 
-        except Exception as e:
-            print(f"Error guardando JSON: {e}")
+            except Exception as e:
+                errores.append({"url": url, "error": str(e)})
 
-    # ===============================================================
-    # DESCARGAR PDFs
-    # ===============================================================
-    def descargar_pdfs(self, json_file_path: str, carpeta_destino: str = "static/uploads") -> Dict:
-
-        try:
-            all_links = self._cargar_links_desde_json(json_file_path)
-            pdf_links = [l for l in all_links if l.get('type') == 'pdf']
-
-            if not pdf_links:
-                return {
-                    'success': True,
-                    'mensaje': 'No hay PDFs para descargar',
-                    'descargados': 0,
-                    'errores': 0
-                }
-
-            Funciones.crear_carpeta(carpeta_destino)
-            Funciones.borrar_contenido_carpeta(carpeta_destino)
-
-            descargados = 0
-            errores = 0
-            errores_detalle = []
-
-            for i, link in enumerate(pdf_links, 1):
-                pdf_url = link['url']
-
-                try:
-                    nombre_archivo = os.path.basename(pdf_url.split('?')[0])
-
-                    if not nombre_archivo.lower().endswith('.pdf'):
-                        nombre_archivo += '.pdf'
-
-                    ruta_archivo = os.path.join(carpeta_destino, nombre_archivo)
-
-                    res = self.session.get(pdf_url, stream=True, timeout=60)
-                    res.raise_for_status()
-
-                    with open(ruta_archivo, 'wb') as f:
-                        for chunk in res.iter_content(8192):
-                            if chunk:
-                                f.write(chunk)
-
-                    descargados += 1
-
-                except Exception as e:
-                    errores += 1
-                    errores_detalle.append({'url': pdf_url, 'error': str(e)})
-
-            resultado = {
-                'success': True,
-                'total': len(pdf_links),
-                'descargados': descargados,
-                'errores': errores,
-                'carpeta_destino': carpeta_destino,
-            }
-
-            if errores_detalle:
-                resultado['archivos_con_error'] = errores_detalle
-
-            return resultado
-
-        except Exception as e:
-            return {
-                'success': False,
-                'error': str(e),
-                'descargados': 0,
-                'errores': 0
-            }
+        return {
+            "success": True,
+            "total": len(pdfs),
+            "descargados": descargados,
+            "errores": errores
+        }
 
     # ===============================================================
-    # CIERRE DE LA SESIÓN REQUESTS
+    # JSON HELPERS
+    # ===============================================================
+    def _guardar_links(self, path: str, lista_links: List[Dict]):
+        """Guardar JSON con formato estándar de tu App."""
+        data = {"links": lista_links}
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+    def _cargar_links(self, path: str) -> List[Dict]:
+        if not os.path.exists(path):
+            return []
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f).get("links", [])
+
+    # ===============================================================
+    # CERRAR SELENIUM
     # ===============================================================
     def close(self):
-        self.session.close()
+        """Cerrar Selenium correctamente."""
+        try:
+            self.driver.quit()
+        except:
+            pass
