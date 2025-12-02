@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 
 # Helpers
-from Helpers import MongoDB, ElasticSearch, Funciones, WebScraping
+from Helpers import MongoDB, ElasticSearch, Funciones, WebScraping, OCRtoElastic
 
 # ==================== CONFIGURACIÓN ====================
 load_dotenv()
@@ -18,18 +18,26 @@ MONGO_URI = os.getenv('MONGO_URI')
 MONGO_DB = os.getenv('MONGO_DB')
 MONGO_COLECCION = os.getenv('MONGO_COLECCION', 'usuario_roles')
 
-# Elastic
+# ElasticSearch
 ELASTIC_CLOUD_URL = os.getenv('ELASTIC_CLOUD_URL')
 ELASTIC_API_KEY = os.getenv('ELASTIC_API_KEY')
-ELASTIC_INDEX_DEFAULT = os.getenv('ELASTIC_INDEX_DEFAULT', 'index_cuentos')
+
+# Índice donde se guardarán los JSON derivados del OCR
+ELASTIC_INDEX_DEFAULT = os.getenv('ELASTIC_INDEX_DEFAULT', 'index_normatividad')
 
 # Metadatos
 VERSION_APP = "1.2.0"
 CREATOR_APP = "JaderAGO"
 
-# Conexiones
+# ==================== INSTANCIAS ====================
 mongo = MongoDB(MONGO_URI, MONGO_DB)
 elastic = ElasticSearch(ELASTIC_CLOUD_URL, ELASTIC_API_KEY)
+
+# OCR conectado a ElasticSearch
+ocr = OCRtoElastic(
+    elastic_instance=elastic,
+    index_name=ELASTIC_INDEX_DEFAULT
+)
 
 # ==================== RUTAS ====================
 
@@ -52,7 +60,6 @@ def buscar_elastic():
     try:
         data = request.get_json()
         texto_buscar = data.get('texto', '').strip()
-        campo = "texto"  # campo fijo
 
         if not texto_buscar:
             return jsonify({'success': False, 'error': 'Texto de búsqueda es requerido'}), 400
@@ -60,22 +67,7 @@ def buscar_elastic():
         query = {
             "query": {
                 "match": {
-                    campo: texto_buscar
-                }
-            }
-        }
-
-        aggs = {
-            "cuentos_por_mes": {
-                "date_histogram": {
-                    "field": "fecha_creacion",
-                    "calendar_interval": "month"
-                }
-            },
-            "cuentos_por_autor": {
-                "terms": {
-                    "field": "autor",
-                    "size": 10
+                    "texto_ocr": texto_buscar
                 }
             }
         }
@@ -83,8 +75,7 @@ def buscar_elastic():
         resultado = elastic.buscar(
             index=ELASTIC_INDEX_DEFAULT,
             query=query,
-            aggs=aggs,
-            size=100
+            size=50
         )
 
         return jsonify(resultado)
@@ -114,6 +105,9 @@ def login():
 
     return render_template('login.html')
 
+
+# ==================== GESTOR USUARIOS ====================
+
 @app.route('/listar-usuarios')
 def listar_usuarios():
     try:
@@ -128,7 +122,7 @@ def listar_usuarios():
 @app.route('/gestor_usuarios')
 def gestor_usuarios():
     if not session.get('logged_in'):
-        flash('Por favor inicia sesión', 'warning')
+        flash('Inicia sesión', 'warning')
         return redirect(url_for('login'))
 
     permisos = session.get('permisos', {})
@@ -145,156 +139,7 @@ def gestor_usuarios():
     )
 
 
-@app.route('/crear-usuario', methods=['POST'])
-def crear_usuario():
-    try:
-        if not session.get('logged_in'):
-            return jsonify({'success': False, 'error': 'No autorizado'}), 401
-
-        permisos = session.get('permisos', {})
-        if not permisos.get('admin_usuarios'):
-            return jsonify({'success': False, 'error': 'No tiene permisos'}), 403
-
-        data = request.get_json()
-        usuario = data.get('usuario')
-        password = data.get('password')
-        permisos_usuario = data.get('permisos', {})
-
-        if not usuario or not password:
-            return jsonify({'success': False, 'error': 'Usuario y password requeridos'}), 400
-
-        if mongo.obtener_usuario(usuario, MONGO_COLECCION):
-            return jsonify({'success': False, 'error': 'El usuario ya existe'}), 400
-
-        if mongo.crear_usuario(usuario, password, permisos_usuario, MONGO_COLECCION):
-            return jsonify({'success': True})
-        else:
-            return jsonify({'success': False, 'error': 'Error al crear usuario'}), 500
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@app.route('/actualizar-usuario', methods=['POST'])
-def actualizar_usuario():
-    try:
-        if not session.get('logged_in'):
-            return jsonify({'success': False, 'error': 'No autorizado'}), 401
-
-        permisos = session.get('permisos', {})
-        if not permisos.get('admin_usuarios'):
-            return jsonify({'success': False, 'error': 'Sin permisos'}), 403
-
-        data = request.get_json()
-        usuario_original = data.get('usuario_original')
-        datos_usuario = data.get('datos', {})
-
-        if not usuario_original:
-            return jsonify({'success': False, 'error': 'Usuario original requerido'}), 400
-
-        if not mongo.obtener_usuario(usuario_original, MONGO_COLECCION):
-            return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
-
-        nuevo_usuario = datos_usuario.get('usuario')
-        if nuevo_usuario and nuevo_usuario != usuario_original:
-            if mongo.obtener_usuario(nuevo_usuario, MONGO_COLECCION):
-                return jsonify({'success': False, 'error': 'Nombre ya en uso'}), 400
-
-        mongo.actualizar_usuario(usuario_original, datos_usuario, MONGO_COLECCION)
-        return jsonify({'success': True})
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@app.route('/eliminar-usuario', methods=['POST'])
-def eliminar_usuario():
-    try:
-        if not session.get('logged_in'):
-            return jsonify({'success': False, 'error': 'No autorizado'}), 401
-
-        permisos = session.get('permisos', {})
-        if not permisos.get('admin_usuarios'):
-            return jsonify({'success': False, 'error': 'Sin permisos'}), 403
-
-        data = request.get_json()
-        usuario = data.get('usuario')
-
-        if not usuario:
-            return jsonify({'success': False, 'error': 'Usuario requerido'}), 400
-
-        if usuario == session.get('usuario'):
-            return jsonify({'success': False, 'error': 'No puede eliminarse a sí mismo'}), 400
-
-        if not mongo.obtener_usuario(usuario, MONGO_COLECCION):
-            return jsonify({'success': False, 'error': 'Usuario no existe'}), 404
-
-        mongo.eliminar_usuario(usuario, MONGO_COLECCION)
-        return jsonify({'success': True})
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-# ==================== ELASTICSEARCH ====================
-
-@app.route('/gestor_elastic')
-def gestor_elastic():
-    if not session.get('logged_in'):
-        flash('Inicia sesión', 'warning')
-        return redirect(url_for('login'))
-
-    permisos = session.get('permisos', {})
-    if not permisos.get('admin_elastic'):
-        flash('Sin permisos', 'danger')
-        return redirect(url_for('admin'))
-
-    return render_template(
-        'gestor_elastic.html',
-        usuario=session.get('usuario'),
-        permisos=permisos,
-        version=VERSION_APP,
-        creador=CREATOR_APP
-    )
-
-
-@app.route('/listar-indices-elastic')
-def listar_indices_elastic():
-    try:
-        if not session.get('logged_in'):
-            return jsonify({'error': 'No autorizado'}), 401
-
-        permisos = session.get('permisos', {})
-        if not permisos.get('admin_elastic'):
-            return jsonify({'error': 'Sin permisos'}), 403
-
-        return jsonify(elastic.listar_indices())
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@app.route('/ejecutar-query-elastic', methods=['POST'])
-def ejecutar_query_elastic():
-    try:
-        if not session.get('logged_in'):
-            return jsonify({'success': False, 'error': 'No autorizado'}), 401
-
-        permisos = session.get('permisos', {})
-        if not permisos.get('admin_elastic'):
-            return jsonify({'success': False, 'error': 'Sin permisos'}), 403
-
-        data = request.get_json()
-        query_json = data.get('query')
-
-        if not query_json:
-            return jsonify({'success': False, 'error': 'Query requerida'}), 400
-
-        return jsonify(elastic.ejecutar_query(query_json))
-
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
+# ==================== WEB SCRAPING → OCR → ELASTIC ====================
 
 @app.route('/procesar-webscraping-elastic', methods=['POST'])
 def procesar_webscraping_elastic():
@@ -308,44 +153,36 @@ def procesar_webscraping_elastic():
 
         data = request.get_json()
         url = data.get('url')
-        extensiones_navegar = data.get('extensiones_navegar', 'aspx')
-        tipos_archivos = data.get('tipos_archivos', 'pdf')
-        index = data.get('index')
+        index = data.get('index', ELASTIC_INDEX_DEFAULT)
 
-        if not url or not index:
-            return jsonify({'success': False, 'error': 'URL e índice requeridos'}), 400
+        if not url:
+            return jsonify({'success': False, 'error': 'URL requerida'}), 400
 
-        lista_ext_navegar = [ext.strip() for ext in extensiones_navegar.split(',')]
-        lista_tipos_archivos = [ext.strip() for ext in tipos_archivos.split(',')]
-        todas_extensiones = lista_ext_navegar + lista_tipos_archivos
-
-        scraper = WebScraping(dominio_base=url.rsplit('/', 1)[0] + '/')
+        scraper = WebScraping(dominio_base=url.rsplit('/', 1)[0] + "/")
 
         carpeta_upload = 'static/uploads'
         Funciones.crear_carpeta(carpeta_upload)
         Funciones.borrar_contenido_carpeta(carpeta_upload)
 
-        json_path = os.path.join(carpeta_upload, 'links.json')
-        resultado = scraper.extraer_todos_los_links(url, json_path, todas_extensiones, 50)
+        # Paso 1: EXTRAER Y GUARDAR LINKS
+        json_links = os.path.join(carpeta_upload, "links.json")
+        resultado = scraper.extraer_todos_los_links(url, json_links)
 
-        if not resultado['success']:
-            return jsonify({'success': False, 'error': 'Error extrayendo enlaces'}), 500
+        # Paso 2: DESCARGAR PDFs
+        resultado_descarga = scraper.descargar_pdfs(json_links, carpeta_upload)
 
-        resultado_descarga = scraper.descargar_pdfs(json_path, carpeta_upload)
-
-        archivos = Funciones.listar_archivos_carpeta(carpeta_upload, lista_tipos_archivos)
+        # Paso 3: PROCESAR PDFs → JSON → ENVIAR A ELASTIC
+        resultado_ocr = ocr.procesar_y_enviar(carpeta_upload)
 
         scraper.close()
 
         return jsonify({
-            'success': True,
-            'archivos': archivos,
-            'mensaje': f'{len(archivos)} archivos descargados',
-            'stats': {
-                'total_enlaces': resultado['total_links'],
-                'descargados': resultado_descarga.get('descargados', 0),
-                'errores': resultado_descarga.get('errores', 0)
-            }
+            "success": True,
+            "mensaje": "Proceso completado correctamente",
+            "enlaces_totales": resultado.get("total_links"),
+            "pdf_descargados": resultado_descarga.get("descargados"),
+            "json_generados": resultado_ocr.get("json_generados"),
+            "elastic_result": resultado_ocr.get("elastic")
         })
 
     except Exception as e:
