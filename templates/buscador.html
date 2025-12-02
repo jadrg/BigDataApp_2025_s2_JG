@@ -91,7 +91,7 @@
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search"></i> Buscar
+                                Buscar
                             </button>
                         </div>
                     </div>
@@ -111,42 +111,35 @@
         <div id="divResultados" class="resultados-container" style="display: none;">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Resultados de la búsqueda - Total encontrado: <span id="totalResultados">0</span></h5>
+                    <h5 class="mb-0">
+                        Resultados de la búsqueda - Total encontrado: 
+                        <span id="totalResultados">0</span>
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <!-- Columna 1: Aggregations (20%) -->
+                        <!-- Columna 1: Aggregations -->
                         <div class="col-md-3">
                             <div class="aggs-list">
-<<<<<<< HEAD
                                 <h6 class="mb-3">Filtros</h6>
-=======
                                 <h6 class="mb-3">Agregaciones</h6>
->>>>>>> origin/main
                                 <div id="divAggregations">
                                     <!-- Las aggregations se mostrarán aquí -->
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Columna 2: Tabla de resultados (80%) -->
+                        <!-- Columna 2: Tabla de resultados -->
                         <div class="col-md-9">
                             <div class="tabla-resultados">
                                 <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-dark">
                                         <tr>
                                             <th style="width: 5%;">#</th>
-<<<<<<< HEAD
-                                            <th style="width: 10%;">Id</th>
-                                            <th style="width: 10%;">Score</th>
-                                            <th style="width: 10%;">Index</th>
-                                            <th style="width: 75%;">Contenido</th>
-=======
                                             <th style="width: 10%;">ID</th>
                                             <th style="width: 10%;">Score</th>
                                             <th style="width: 15%;">Índice</th>
                                             <th style="width: 60%;">Contenido</th>
->>>>>>> origin/main
                                         </tr>
                                     </thead>
                                     <tbody id="tablaResultados">
@@ -174,10 +167,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script>
-        // Inicializar año
+        // Año actual en el footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Función para buscar
+        // Variable global para guardar la última búsqueda (para el modal)
+        let ultimaBusqueda = [];
+
+        // =========================
+        // Función principal de búsqueda
+        // =========================
         function buscar(event) {
             event.preventDefault();
             
@@ -188,20 +186,18 @@
                 return;
             }
             
-            // Ocultar resultados anteriores y mostrar carga
+            // Ocultar resultados anteriores y mostrar "cargando"
             document.getElementById('divResultados').style.display = 'none';
             document.getElementById('divError').style.display = 'none';
             document.getElementById('div_cargando').style.display = 'block';
             
-            // Realizar búsqueda
             fetch('/buscar-elastic', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    texto: textoBuscar,
-                    campo: '_all'
+                    texto: textoBuscar
                 })
             })
             .then(response => response.json())
@@ -221,27 +217,26 @@
             });
         }
 
-        // Función para mostrar resultados
+        // =========================
+        // Mostrar resultados generales
+        // =========================
         function mostrarResultados(data) {
-            // Mostrar total
+            // Total de documentos
             document.getElementById('totalResultados').textContent = data.total || 0;
             
-            // Mostrar aggregations
+            // Agregaciones (si existen)
             mostrarAggregations(data.aggs || {});
             
-<<<<<<< HEAD
-            // Mostrar hits-resultados
-            mostrarHits(data.resultados || []);
-=======
-            // Mostrar hits
-            mostrarHits(data.hits || []);
->>>>>>> origin/main
+            // Hits/resultados (compatibilidad: resultados ó hits)
+            const hits = data.resultados || data.hits || [];
+            mostrarHits(hits);
             
-            // Mostrar div de resultados
             document.getElementById('divResultados').style.display = 'block';
         }
 
-        // Función para mostrar aggregations
+        // =========================
+        // Mostrar agregaciones (si las hay)
+        // =========================
         function mostrarAggregations(aggs) {
             const divAggregations = document.getElementById('divAggregations');
             divAggregations.innerHTML = '';
@@ -250,8 +245,8 @@
                 divAggregations.innerHTML = '<p class="text-muted">No hay agregaciones disponibles</p>';
                 return;
             }
-            
-            // Procesar cuentos_por_mes
+
+            // Ejemplo: cuentos_por_mes
             if (aggs.cuentos_por_mes && aggs.cuentos_por_mes.buckets) {
                 const divMes = document.createElement('div');
                 divMes.className = 'aggs-item';
@@ -261,13 +256,14 @@
                 const listMes = document.getElementById('listCuentosPorMes');
                 aggs.cuentos_por_mes.buckets.forEach(bucket => {
                     const li = document.createElement('li');
-                    const fecha = new Date(bucket.key_as_string || bucket.key).toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+                    const fecha = new Date(bucket.key_as_string || bucket.key)
+                        .toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
                     li.innerHTML = `${fecha} <span class="badge bg-primary">${bucket.doc_count}</span>`;
                     listMes.appendChild(li);
                 });
             }
             
-            // Procesar cuentos_por_autor
+            // Ejemplo: cuentos_por_autor
             if (aggs.cuentos_por_autor && aggs.cuentos_por_autor.buckets) {
                 const divAutor = document.createElement('div');
                 divAutor.className = 'aggs-item';
@@ -283,100 +279,16 @@
             }
         }
 
-        // Función para mostrar hits
-<<<<<<< HEAD
-        function mostrarHits(resultados) {
-            console.log(resultados);
-            const tablaResultados = document.getElementById('tablaResultados');
-            tablaResultados.innerHTML = '';
-            
-            if (resultados.length === 0) {
-                tablaResultados.innerHTML = '<tr><td colspan="5" class="text-center">¡No se encontraron resultados!</td></tr>';
-                return;
-            }
-            
-            resultados.forEach((resultado, index) => {
-                const row = document.createElement('tr');
-                const source = resultado._source || {};
-=======
+        // =========================
+        // Mostrar tabla de hits
+        // =========================
         function mostrarHits(hits) {
+            ultimaBusqueda = hits; // Guardamos para el modal
+
             const tablaResultados = document.getElementById('tablaResultados');
             tablaResultados.innerHTML = '';
             
-            if (hits.length === 0) {
-                tablaResultados.innerHTML = '<tr><td colspan="5" class="text-center">No se encontraron resultados</td></tr>';
-                return;
-            }
-            
-            hits.forEach((hit, index) => {
-                const row = document.createElement('tr');
-                const source = hit._source || {};
->>>>>>> origin/main
-                
-                // Crear vista del contenido (primeros 200 caracteres)
-                let contenidoVista = '';
-                if (source.contenido) {
-                    contenidoVista = source.contenido.substring(0, 200);
-                    if (source.contenido.length > 200) {
-                        contenidoVista += '...';
-                    }
-                } else if (source.texto) {
-                    contenidoVista = source.texto.substring(0, 200);
-                    if (source.texto.length > 200) {
-                        contenidoVista += '...';
-                    }
-                } else {
-                    contenidoVista = JSON.stringify(source, null, 2).substring(0, 200);
-                }
-                
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${hit._id || ''}</td>
-                    <td>${hit._score ? hit._score.toFixed(4) : 'N/A'}</td>
-                    <td><small>${hit._index || ''}</small></td>
-                    <td>
-                        <div class="json-view">${contenidoVista}</div>
-                        <button class="btn btn-sm btn-link mt-1" onclick="mostrarDetalle(${index})" data-bs-toggle="modal" data-bs-target="#modalDetalle">
-                            Ver completo
-                        </button>
-                        <div class="detalle-completo" style="display: none;">
-                            ${JSON.stringify(source, null, 2)}
-                        </div>
-                    </td>
-                `;
-                tablaResultados.appendChild(row);
-            });
-        }
-
-        // Función para mostrar error
-        function mostrarError(mensaje) {
-            document.getElementById('mensajeError').textContent = mensaje;
-            document.getElementById('divError').style.display = 'block';
-        }
-
-        // Variable global para almacenar última búsqueda
-        let ultimaBusqueda = [];
-
-        // Función para mostrar detalle completo
-        function mostrarDetalle(index) {
-            if (ultimaBusqueda[index]) {
-                const source = ultimaBusqueda[index]._source || {};
-                const modalBody = document.getElementById('modalDetalleBody');
-                if (modalBody) {
-                    modalBody.innerHTML = '<pre class="json-view" style="max-height: 500px; overflow-y: auto;">' + JSON.stringify(source, null, 2) + '</pre>';
-                }
-            }
-        }
-
-        // Actualizar función mostrarHits para guardar datos
-        function mostrarHitsOriginal(hits) {
-            // Guardar para usar en detalles
-            ultimaBusqueda = hits;
-            
-            const tablaResultados = document.getElementById('tablaResultados');
-            tablaResultados.innerHTML = '';
-            
-            if (hits.length === 0) {
+            if (!hits || hits.length === 0) {
                 tablaResultados.innerHTML = '<tr><td colspan="5" class="text-center">No se encontraron resultados</td></tr>';
                 return;
             }
@@ -385,11 +297,16 @@
                 const row = document.createElement('tr');
                 const source = hit._source || {};
                 
-                // Crear vista del contenido (primeros 200 caracteres)
+                // Vista corta del contenido
                 let contenidoVista = '';
                 if (source.contenido) {
                     contenidoVista = source.contenido.substring(0, 200);
                     if (source.contenido.length > 200) {
+                        contenidoVista += '...';
+                    }
+                } else if (source.texto_ocr) {
+                    contenidoVista = source.texto_ocr.substring(0, 200);
+                    if (source.texto_ocr.length > 200) {
                         contenidoVista += '...';
                     }
                 } else if (source.texto) {
@@ -411,7 +328,7 @@
                     <td>${hit._score ? hit._score.toFixed(4) : 'N/A'}</td>
                     <td><small>${hit._index || ''}</small></td>
                     <td>
-                        <div class="text-truncate" style="max-width: 400px;" title="${source.contenido || source.texto || JSON.stringify(source).substring(0, 300)}">${contenidoVista}</div>
+                        <div class="json-view">${contenidoVista}</div>
                         <button class="btn btn-sm btn-link mt-1" onclick="mostrarDetalle(${index})" data-bs-toggle="modal" data-bs-target="#modalDetalle">
                             Ver completo
                         </button>
@@ -421,9 +338,28 @@
             });
         }
 
-        // Reemplazar función mostrarHits
-        function mostrarHits(hits) {
-            mostrarHitsOriginal(hits);
+        // =========================
+        // Mostrar error
+        // =========================
+        function mostrarError(mensaje) {
+            document.getElementById('mensajeError').textContent = mensaje;
+            document.getElementById('divError').style.display = 'block';
+        }
+
+        // =========================
+        // Modal: detalle completo
+        // =========================
+        function mostrarDetalle(index) {
+            if (!ultimaBusqueda || !ultimaBusqueda[index]) return;
+
+            const source = ultimaBusqueda[index]._source || {};
+            const modalBody = document.getElementById('modalDetalleBody');
+            if (modalBody) {
+                modalBody.innerHTML =
+                    '<pre class="json-view" style="max-height: 500px; overflow-y: auto;">' +
+                    JSON.stringify(source, null, 2) +
+                    '</pre>';
+            }
         }
     </script>
 
@@ -433,7 +369,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalDetalleLabel">Detalle del Documento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body" id="modalDetalleBody">
                     <!-- El contenido se mostrará aquí -->
@@ -446,4 +382,3 @@
     </div>
 </body>
 </html>
-
