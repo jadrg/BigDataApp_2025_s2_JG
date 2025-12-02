@@ -1,4 +1,9 @@
 {
     "archivo": "0649_2024.pdf",
-    "error": "No se pudo convertir a imágenes: Unable to get page count. Is poppler installed and in PATH?"
+    "texto_ocr": "\n\n\n\n",
+    "num_paginas": 3,
+    "caracteres": 0,
+    "tiene_texto": false,
+    "fecha_procesado": "2025-12-01",
+    "motivo_sin_texto": "PDF sin texto embebido (probable escaneo)"
 }
