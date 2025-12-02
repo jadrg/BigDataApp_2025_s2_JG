@@ -1,4 +1,5 @@
-from Helpers import OCRtoElastic, ElasticSearch
+from Helpers.OCRtoElastic import OCRtoElastic
+from Helpers.elastic import ElasticSearch
 import os
 from dotenv import load_dotenv
 
@@ -20,7 +21,7 @@ elastic = ElasticSearch(
     os.getenv("ELASTIC_API_KEY")
 )
 
-# Instanciar OCR
+# Instanciar OCR (CLASE CORRECTA)
 ocr = OCRtoElastic(
     elastic_instance=elastic,
     index_name=INDEX
@@ -32,4 +33,4 @@ if __name__ == "__main__":
     resultado = ocr.procesar_y_enviar(CARPETA_PDFS, CARPETA_JSON)
     print("\n=== FINALIZADO ===")
     print(resultado)
-    print(f"\nDocumentos procesados y enviados a Elastic en el índice '{INDEX}'.")  
+    print(f"\nDocumentos procesados y enviados a Elastic en el índice '{INDEX}'.")
