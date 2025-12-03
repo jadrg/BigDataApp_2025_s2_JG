@@ -2,46 +2,190 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-sca  le=1.0">
-    <title>BigData-LuisFCG</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigData – MiProyecto</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font elegante -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --azul: #1F42AD;
+            --dorado: #EFB810;
+            --azul-oscuro: #162F7A;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* NAVBAR */
+        .navbar-custom {
+            background-color: var(--azul);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white !important;
+        }
+
+        .nav-link {
+            color: #dfe6ff !important;
+            font-weight: 500;
+            margin-left: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--dorado) !important;
+        }
+
+        /* HERO SECTION */
+        .hero-section {
+            background: linear-gradient(135deg, var(--azul) 0%, var(--azul-oscuro) 80%);
+            color: white;
+            padding: 90px 0;
+            text-align: center;
+            border-bottom: 6px solid var(--dorado);
+        }
+
+        .hero-title {
+            font-size: 2.7rem;
+            font-weight: 700;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        /* CARD SECTION */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transition: 0.3s;
+            border-bottom: 5px solid transparent;
+        }
+
+        .info-card:hover {
+            transform: translateY(-6px);
+            border-bottom: 5px solid var(--dorado);
+            cursor: pointer;
+        }
+
+        .info-icon {
+            font-size: 50px;
+            color: var(--azul);
+            margin-bottom: 15px;
+        }
+
+        .info-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--azul);
+            color: white;
+            padding: 25px 0;
+            margin-top: 60px;
+        }
+
+        /* Make link look like normal card (no underline, no blue text) */
+        .card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
 </head>
+
 <body>
-    <header class="header">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h3 mb-0">BigData-MiProyecto</h1>
-                <nav>
-                    <ul class="nav">
-                        <li class="nav-item"><a class="nav-link" href="/buscador">Buscador</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/about">Acerca de</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/login">Ingresar</a></li>
-                    </ul>
-                </nav>
+            <a class="navbar-brand" href="/">BigData – MiProyecto</a>
+            <div>
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="/buscador">Buscador</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">Acerca de</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/login">Ingresar</a></li>
+                </ul>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <div class="container">
-        <h1 class="text-center">
-            Bienvenidos al proyecto de BigData<BR> 
-                creado por XYZ<br> 
-                como parte de <br>
-                un proyecto de clase<br> 
-                En la maestría de Analítica de Datos <br>
-                De la Universidad Central</h1>
+    <!-- HERO -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Proyecto BigData de Analítica Avanzada</h1>
+            <p class="hero-subtitle">
+                Una plataforma desarrollada en la Maestría de Analítica de Datos – Universidad Central
+            </p>
+        </div>
+    </section>
+
+    <!-- INFO CARDS -->
+    <div class="container mt-5">
+        <div class="row g-4">
+
+            <!-- Card 1 -->
+            <div class="col-md-4">
+                <a class="card-link" href="#">
+                    <div class="info-card">
+                        <div class="info-icon">📊</div>
+                        <div class="info-title">Explora Datos</div>
+                        <p>Accede a herramientas de consulta, extracción y análisis inteligente.</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="col-md-4">
+                <a class="card-link" href="#">
+                    <div class="info-card">
+                        <div class="info-icon">🧠</div>
+                        <div class="info-title">IA & Machine Learning</div>
+                        <p>Integración con OCR, NLP y modelos de predicción.</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Card 3 (Buscador Avanzado funcional) -->
+            <div class="col-md-4">
+                <a class="card-link" href="/buscador">
+                    <div class="info-card">
+                        <div class="info-icon">🔍</div>
+                        <div class="info-title">Buscador Avanzado</div>
+                        <p>Encuentra documentos, leyes y resoluciones usando ElasticSearch.</p>
+                    </div>
+                </a>
+            </div>
+
+        </div>
     </div>
 
+    <!-- FOOTER -->
     <footer class="text-center">
         <p class="mb-0">Creado por {{ creador }}</p>
-        <p class="mb-0" id="current-year"></p>
-        <p class="mb-0" id="version_app">{{ version }}</p>
+        <p class="mb-0">© <span id="year"></span> — Todos los derechos reservados</p>
+        <p class="mb-0">Versión: {{ version }}</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
-        document.getElementById('current-year').textContent = new Date().getFullYear();
+        document.getElementById("year").innerText = new Date().getFullYear();
     </script>
+
 </body>
-</html> 
+</html>

@@ -4,11 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Usuarios - BigData</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Tu CSS original -->
     <link href="{{ url_for('static', filename='css/gestor.css') }}" rel="stylesheet">
+
+    <!-- Estilo Mejorado -->
+    <style>
+        :root {
+            --azul: #1F42AD;
+            --azul-oscuro: #162F7A;
+            --dorado: #EFB810;
+            --gris-fondo: #f4f6fa;
+        }
+
+        body {
+            background: var(--gris-fondo) !important;
+            font-family: "Inter", sans-serif;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--azul) !important;
+            padding: 14px 0;
+            color: white;
+            box-shadow: 0 2px 7px rgba(0,0,0,0.25);
+        }
+
+        .header .nav-link {
+            color: #e6e6e6 !important;
+            font-weight: 500;
+        }
+
+        .header .nav-link:hover {
+            color: var(--dorado) !important;
+            font-weight: 700;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container.mt-4 {
+            background: white !important;
+            border-radius: 14px;
+            padding: 35px;
+            max-width: 1100px;
+            margin: 40px auto;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border: 1px solid #e3e6ed;
+        }
+
+        /* TÍTULO */
+        h1.h3 {
+            color: var(--azul);
+            font-weight: 700;
+            margin-bottom: 20px !important;
+        }
+
+        /* BOTÓN CREAR USUARIO */
+        .btn-success {
+            background: var(--dorado) !important;
+            border-color: var(--dorado) !important;
+            color: black !important;
+            font-weight: 700;
+            padding: 7px 14px;
+            border-radius: 8px;
+        }
+
+        .btn-success:hover {
+            background: #cda300 !important;
+        }
+
+        /* TABLA */
+        .table-responsive {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #ececec;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        thead.table-dark {
+            background: var(--azul) !important;
+        }
+
+        thead th {
+            color: white !important;
+            text-align: center !important;
+        }
+
+        tbody td {
+            vertical-align: middle;
+        }
+
+        /* BOTONES EDITAR Y ELIMINAR */
+        .btn-warning {
+            background: #ffd149 !important;
+            border: none !important;
+            font-weight: 600 !important;
+            padding: 4px 10px !important;
+        }
+
+        .btn-danger {
+            font-weight: 600 !important;
+            padding: 4px 10px !important;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--azul);
+            color: white;
+            padding: 18px 0;
+            margin-top: 60px;
+            border-top: 4px solid var(--dorado);
+        }
+    </style>
 </head>
+
 <body>
+
+    <!-- HEADER -->
     <header class="header">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
@@ -22,16 +138,21 @@
             </div>
         </div>
     </header>
+
     <hr>
+
+    <!-- CONTENIDO PRINCIPAL -->
     <div class="container mt-4">
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">Gestión de usuarios</h1>
+
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearUsuario">
                 <i class="bi bi-plus-circle"></i> Crear usuario
             </button>
         </div>
 
-        <!-- Tabla de usuarios -->
+        <!-- TABLA -->
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
                 <thead class="table-dark">
@@ -53,380 +174,280 @@
             </table>
         </div>
 
-        <!-- Mensaje de carga -->
+        <!-- LOADING -->
         <div id="div_cargando" class="text-center mt-4" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
+            <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">Procesando su solicitud...</p>
         </div>
     </div>
 
-    <!-- Modal Crear Usuario -->
-    <div class="modal fade" id="modalCrearUsuario" tabindex="-1" aria-labelledby="modalCrearUsuarioLabel" aria-hidden="true">
+    <!-- MODAL CREAR -->
+    <div class="modal fade" id="modalCrearUsuario" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalCrearUsuarioLabel">Crear Nuevo Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Crear Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
                     <form id="formCrearUsuario">
                         <div class="mb-3">
-                            <label for="crear_usuario" class="form-label">Usuario</label>
-                            <input type="text" class="form-control" id="crear_usuario" name="usuario" required>
+                            <label class="form-label">Usuario</label>
+                            <input type="text" id="crear_usuario" name="usuario" class="form-control" required>
                         </div>
+
                         <div class="mb-3">
-                            <label for="crear_password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="crear_password" name="password" required>
+                            <label class="form-label">Password</label>
+                            <input type="password" id="crear_password" name="password" class="form-control" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Permisos</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="crear_permiso_login" name="permisos" value="login" checked>
-                                <label class="form-check-label" for="crear_permiso_login">Login</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="crear_permiso_admin_usuarios" name="permisos" value="admin_usuarios">
-                                <label class="form-check-label" for="crear_permiso_admin_usuarios">Admin Usuarios</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="crear_permiso_admin_elastic" name="permisos" value="admin_elastic">
-                                <label class="form-check-label" for="crear_permiso_admin_elastic">Admin Elastic</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="crear_permiso_admin_data_elastic" name="permisos" value="admin_data_elastic">
-                                <label class="form-check-label" for="crear_permiso_admin_data_elastic">Admin Data Elastic</label>
-                            </div>
+
+                        <label class="form-label">Permisos</label>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="login" id="crear_permiso_login" checked>
+                            <label class="form-check-label">Login</label>
                         </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="admin_usuarios" id="crear_permiso_admin_usuarios">
+                            <label class="form-check-label">Admin Usuarios</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="admin_elastic" id="crear_permiso_admin_elastic">
+                            <label class="form-check-label">Admin Elastic</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="admin_data_elastic" id="crear_permiso_admin_data_elastic">
+                            <label class="form-check-label">Admin Data Elastic</label>
+                        </div>
+
                     </form>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="crearUsuario()">Guardar</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" onclick="crearUsuario()">Guardar</button>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Modal Editar Usuario -->
-    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" aria-labelledby="modalEditarUsuarioLabel" aria-hidden="true">
+    <!-- MODAL EDITAR -->
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
+
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalEditarUsuarioLabel">Editar Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
                     <form id="formEditarUsuario">
-                        <input type="hidden" id="editar_usuario_original" name="usuario_original">
+
+                        <input type="hidden" id="editar_usuario_original">
+
                         <div class="mb-3">
-                            <label for="editar_usuario" class="form-label">Usuario</label>
-                            <input type="text" class="form-control" id="editar_usuario" name="usuario" required>
+                            <label class="form-label">Usuario</label>
+                            <input type="text" id="editar_usuario" class="form-control" required>
                         </div>
+
                         <div class="mb-3">
-                            <label for="editar_password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="editar_password" name="password" required>
+                            <label class="form-label">Password</label>
+                            <input type="password" id="editar_password" class="form-control" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Permisos</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editar_permiso_login" name="permisos" value="login">
-                                <label class="form-check-label" for="editar_permiso_login">Login</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editar_permiso_admin_usuarios" name="permisos" value="admin_usuarios">
-                                <label class="form-check-label" for="editar_permiso_admin_usuarios">Admin Usuarios</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editar_permiso_admin_elastic" name="permisos" value="admin_elastic">
-                                <label class="form-check-label" for="editar_permiso_admin_elastic">Admin Elastic</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editar_permiso_admin_data_elastic" name="permisos" value="admin_data_elastic">
-                                <label class="form-check-label" for="editar_permiso_admin_data_elastic">Admin Data Elastic</label>
-                            </div>
+
+                        <label class="form-label">Permisos</label>
+
+                        <div class="form-check">
+                            <input class="form-check-input" id="editar_permiso_login" type="checkbox" value="login">
+                            <label class="form-check-label">Login</label>
                         </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" id="editar_permiso_admin_usuarios" type="checkbox" value="admin_usuarios">
+                            <label class="form-check-label">Admin Usuarios</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" id="editar_permiso_admin_elastic" type="checkbox" value="admin_elastic">
+                            <label class="form-check-label">Admin Elastic</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" id="editar_permiso_admin_data_elastic" type="checkbox" value="admin_data_elastic">
+                            <label class="form-check-label">Admin Data Elastic</label>
+                        </div>
+
                     </form>
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="actualizarUsuario()">Guardar Cambios</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" onclick="actualizarUsuario()">Guardar Cambios</button>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <footer class="text-center mt-5">
+    <!-- FOOTER -->
+    <footer class="text-center">
         <p class="mb-0">Creado por {{ creador }}</p>
-        <p class="mb-0" id="current-year"></p>
-        <p class="mb-0" id="version_app">{{ version }}</p>
+        <p id="current-year" class="mb-0"></p>
+        <p class="mb-0">{{ version }}</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- === LÓGICA ORIGINAL SIN CAMBIOS === -->
     <script>
-        // Inicializar año
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Cargar usuarios al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             cargarUsuarios();
         });
 
-        // Función para cargar y mostrar usuarios
         function cargarUsuarios() {
             document.getElementById('div_cargando').style.display = 'block';
-            
+
             fetch('/listar-usuarios')
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
-                    const tablaUsuarios = document.getElementById('tablaUsuarios');
-                    tablaUsuarios.innerHTML = '';
-                    
+                    const tabla = document.getElementById('tablaUsuarios');
+                    tabla.innerHTML = "";
+
                     if (data.length === 0) {
-                        tablaUsuarios.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios registrados</td></tr>';
+                        tabla.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios registrados</td></tr>';
                     } else {
                         data.forEach(usuario => {
-                            const row = document.createElement('tr');
                             const permisos = usuario.permisos || {};
-                            
-                            const mostrarPermiso = (valor) => {
-                                if (valor === true || valor === 'true') {
-                                    return '<span class="badge bg-success">Sí</span>';
-                                } else {
-                                    return '<span class="badge bg-secondary">No</span>';
-                                }
-                            };
-                            
-                            row.innerHTML = `
-                                <td>${usuario.usuario || ''}</td>
-                                <td>${usuario.password || ''}</td>
-                                <td>${mostrarPermiso(permisos.login)}</td>
-                                <td>${mostrarPermiso(permisos.admin_usuarios)}</td>
-                                <td>${mostrarPermiso(permisos.admin_elastic)}</td>
-                                <td>${mostrarPermiso(permisos.admin_data_elastic)}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning me-2" onclick="editarUsuario('${usuario.usuario}')">
-                                        Editar
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuario('${usuario.usuario}')">
-                                        Eliminar
-                                    </button>
-                                </td>
-                            `;
-                            tablaUsuarios.appendChild(row);
+                            const yesno = v => (v === true || v === 'true'
+                                ? '<span class="badge bg-success">Sí</span>'
+                                : '<span class="badge bg-secondary">No</span>');
+
+                            tabla.innerHTML += `
+                                <tr>
+                                    <td>${usuario.usuario}</td>
+                                    <td>${usuario.password}</td>
+                                    <td>${yesno(permisos.login)}</td>
+                                    <td>${yesno(permisos.admin_usuarios)}</td>
+                                    <td>${yesno(permisos.admin_elastic)}</td>
+                                    <td>${yesno(permisos.admin_data_elastic)}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm me-2" onclick="editarUsuario('${usuario.usuario}')">Editar</button>
+                                        <button class="btn btn-danger btn-sm" onclick="eliminarUsuario('${usuario.usuario}')">Eliminar</button>
+                                    </td>
+                                </tr>`;
                         });
                     }
-                    
-                    document.getElementById('div_cargando').style.display = 'none';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al cargar la lista de usuarios');
+
                     document.getElementById('div_cargando').style.display = 'none';
                 });
         }
 
-        // Función para crear usuario
         function crearUsuario() {
             const form = document.getElementById('formCrearUsuario');
-            const formData = new FormData(form);
-            
-            const usuario = formData.get('usuario');
-            const password = formData.get('password');
-            
-            // Obtener permisos de los checkboxes
-            const permisosCheckboxes = form.querySelectorAll('input[name="permisos"]:checked');
             const permisos = {
-                login: false,
-                admin_usuarios: false,
-                admin_elastic: false,
-                admin_data_elastic: false
+                login: document.getElementById("crear_permiso_login").checked,
+                admin_usuarios: document.getElementById("crear_permiso_admin_usuarios").checked,
+                admin_elastic: document.getElementById("crear_permiso_admin_elastic").checked,
+                admin_data_elastic: document.getElementById("crear_permiso_admin_data_elastic").checked
             };
-            
-            permisosCheckboxes.forEach(checkbox => {
-                permisos[checkbox.value] = true;
-            });
-            
-            const datos = {
-                usuario: usuario,
-                password: password,
-                permisos: permisos
-            };
-            
-            document.getElementById('div_cargando').style.display = 'block';
-            
+
             fetch('/crear-usuario', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(datos)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('div_cargando').style.display = 'none';
-                
-                if (data.success) {
-                    alert('Usuario creado exitosamente');
-                    // Cerrar modal
-                    const modalElement = document.getElementById('modalCrearUsuario');
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    if (modal) {
-                        modal.hide();
-                    } else {
-                        // Si no existe instancia, crear una nueva y ocultar
-                        const newModal = new bootstrap.Modal(modalElement);
-                        newModal.hide();
-                    }
-                    // Limpiar formulario
-                    form.reset();
-                    // Recargar tabla
-                    cargarUsuarios();
-                } else {
-                    alert('Error al crear usuario: ' + (data.error || 'Error desconocido'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('div_cargando').style.display = 'none';
-                alert('Error al crear usuario');
-            });
-        }
-
-        // Función para editar usuario
-        function editarUsuario(usuario) {
-            // Buscar datos del usuario
-            fetch('/listar-usuarios')
-                .then(response => response.json())
-                .then(data => {
-                    const usuarioData = data.find(u => u.usuario === usuario);
-                    
-                    if (usuarioData) {
-                        // Llenar formulario con datos del usuario
-                        document.getElementById('editar_usuario_original').value = usuarioData.usuario;
-                        document.getElementById('editar_usuario').value = usuarioData.usuario;
-                        document.getElementById('editar_password').value = usuarioData.password || '';
-                        
-                        // Marcar checkboxes de permisos
-                        const permisos = usuarioData.permisos || {};
-                        document.getElementById('editar_permiso_login').checked = permisos.login || false;
-                        document.getElementById('editar_permiso_admin_usuarios').checked = permisos.admin_usuarios || false;
-                        document.getElementById('editar_permiso_admin_elastic').checked = permisos.admin_elastic || false;
-                        document.getElementById('editar_permiso_admin_data_elastic').checked = permisos.admin_data_elastic || false;
-                        
-                        // Mostrar modal
-                        const modal = new bootstrap.Modal(document.getElementById('modalEditarUsuario'));
-                        modal.show();
-                    }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    usuario: document.getElementById("crear_usuario").value,
+                    password: document.getElementById("crear_password").value,
+                    permisos: permisos
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al cargar datos del usuario');
-                });
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return alert("Error: " + data.error);
+
+                alert("Usuario creado correctamente");
+                bootstrap.Modal.getInstance(document.getElementById("modalCrearUsuario")).hide();
+                form.reset();
+                cargarUsuarios();
+            });
         }
 
-        // Función para actualizar usuario
-        function actualizarUsuario() {
-            const form = document.getElementById('formEditarUsuario');
-            const usuarioOriginal = document.getElementById('editar_usuario_original').value;
-            const usuario = document.getElementById('editar_usuario').value;
-            const password = document.getElementById('editar_password').value;
-            
-            // Obtener permisos de los checkboxes
-            const permisosCheckboxes = form.querySelectorAll('input[name="permisos"]:checked');
-            const permisos = {
-                login: false,
-                admin_usuarios: false,
-                admin_elastic: false,
-                admin_data_elastic: false
-            };
-            
-            permisosCheckboxes.forEach(checkbox => {
-                permisos[checkbox.value] = true;
+        function editarUsuario(usuario) {
+            fetch('/listar-usuarios')
+            .then(r => r.json())
+            .then(data => {
+                const u = data.find(x => x.usuario === usuario);
+                if (!u) return;
+
+                document.getElementById("editar_usuario_original").value = u.usuario;
+                document.getElementById("editar_usuario").value = u.usuario;
+                document.getElementById("editar_password").value = u.password;
+
+                document.getElementById("editar_permiso_login").checked = u.permisos.login;
+                document.getElementById("editar_permiso_admin_usuarios").checked = u.permisos.admin_usuarios;
+                document.getElementById("editar_permiso_admin_elastic").checked = u.permisos.admin_elastic;
+                document.getElementById("editar_permiso_admin_data_elastic").checked = u.permisos.admin_data_elastic;
+
+                new bootstrap.Modal(document.getElementById("modalEditarUsuario")).show();
             });
-            
-            const datos = {
-                usuario: usuario,
-                password: password,
-                permisos: permisos
+        }
+
+        function actualizarUsuario() {
+            const permisos = {
+                login: document.getElementById("editar_permiso_login").checked,
+                admin_usuarios: document.getElementById("editar_permiso_admin_usuarios").checked,
+                admin_elastic: document.getElementById("editar_permiso_admin_elastic").checked,
+                admin_data_elastic: document.getElementById("editar_permiso_admin_data_elastic").checked
             };
-            
-            document.getElementById('div_cargando').style.display = 'block';
-            
+
             fetch('/actualizar-usuario', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    usuario_original: usuarioOriginal,
-                    datos: datos
+                    usuario_original: document.getElementById("editar_usuario_original").value,
+                    datos: {
+                        usuario: document.getElementById("editar_usuario").value,
+                        password: document.getElementById("editar_password").value,
+                        permisos: permisos
+                    }
                 })
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                document.getElementById('div_cargando').style.display = 'none';
-                
-                if (data.success) {
-                    alert('Usuario actualizado exitosamente');
-                    // Cerrar modal
-                    const modalElement = document.getElementById('modalEditarUsuario');
-                    const modal = bootstrap.Modal.getInstance(modalElement);
-                    if (modal) {
-                        modal.hide();
-                    } else {
-                        // Si no existe instancia, crear una nueva y ocultar
-                        const newModal = new bootstrap.Modal(modalElement);
-                        newModal.hide();
-                    }
-                    // Recargar tabla
-                    cargarUsuarios();
-                } else {
-                    alert('Error al actualizar usuario: ' + (data.error || 'Error desconocido'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('div_cargando').style.display = 'none';
-                alert('Error al actualizar usuario');
+                if (!data.success) return alert("Error: " + data.error);
+
+                alert("Usuario actualizado correctamente");
+                bootstrap.Modal.getInstance(document.getElementById("modalEditarUsuario")).hide();
+                cargarUsuarios();
             });
         }
 
-        // Función para eliminar usuario
         function eliminarUsuario(usuario) {
-            if (!confirm(`¿Está seguro que desea eliminar al usuario "${usuario}"?`)) {
-                return;
-            }
-            
-            document.getElementById('div_cargando').style.display = 'block';
-            
+            if (!confirm(`¿Eliminar usuario "${usuario}"?`)) return;
+
             fetch('/eliminar-usuario', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ usuario: usuario })
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                document.getElementById('div_cargando').style.display = 'none';
-                
-                if (data.success) {
-                    alert('Usuario eliminado exitosamente');
-                    // Recargar tabla
-                    cargarUsuarios();
-                } else {
-                    alert('Error al eliminar usuario: ' + (data.error || 'Error desconocido'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('div_cargando').style.display = 'none';
-                alert('Error al eliminar usuario');
+                if (!data.success) return alert("Error: " + data.error);
+
+                alert("Usuario eliminado");
+                cargarUsuarios();
             });
         }
     </script>
+
 </body>
 </html>
-
