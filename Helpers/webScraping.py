@@ -150,7 +150,6 @@ class WebScraping:
 
         descargados = 0
         errores = []
-
         for link in pdfs:
             url = link["url"]
             nombre = os.path.basename(url)

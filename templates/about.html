@@ -6,6 +6,90 @@
     <title>Acerca de - BigData-MiProyecto</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link href="{{ url_for('static', filename='css/landingPage.css') }}" rel="stylesheet">
+
+    <style>
+        :root {
+            --azul: #1F42AD;
+            --dorado: #EFB810;
+            --gris-fondo: #f4f6fa;
+        }
+
+        body {
+            background: var(--gris-fondo);
+            font-family: "Inter", sans-serif;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--azul);
+            padding: 18px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        .header .nav-link {
+            color: #e6e6e6 !important;
+            font-weight: 500;
+        }
+        .header .nav-link:hover,
+        .header .nav-link.active {
+            color: var(--dorado) !important;
+            font-weight: 700;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container {
+            margin-top: 50px;
+            max-width: 900px;
+            background: white;
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        h1, h3, h4 {
+            color: var(--azul);
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        /* FOTO DEL CREADOR */
+        .profile-img {
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid var(--azul);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        /* BOTONES SOCIALES */
+        .social-links .btn {
+            min-width: 120px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 5px;
+            padding: 10px 16px;
+        }
+
+        .btn-primary { background: var(--azul) !important; border-color: var(--azul) !important; }
+        .btn-warning { background: var(--dorado) !important; border-color: var(--dorado) !important; color: #000 !important; }
+
+        .btn-success { background: #15803d !important; border-color: #15803d !important; }
+
+        /* FOOTER */
+        footer {
+            margin-top: 60px;
+            padding: 20px 0;
+            background: var(--azul);
+            color: white;
+            border-top: 4px solid var(--dorado);
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -37,9 +121,9 @@
                 <p>Universidad Central</p>
                 
                 <div class="social-links mt-3">
-                    <a href="https://github.com/xyz" target="_blank" class="btn btn-primary">GitHub</a>
-                    <a href="https://linkedin.com/in/xyz" target="_blank" class="btn btn-warning">LinkedIn</a>
-                    <a href="https://twitter.com/xyz" target="_blank"  class="btn btn-success">Twitter</a>
+                    <a href="https://github.com/jadrg" target="_blank" class="btn btn-primary">GitHub</a>
+                    <a href="https://www.linkedin.com/in/jader-gomez-6a2427165/?originalSubdomain=co" target="_blank" class="btn btn-warning">LinkedIn</a>
+                    <a href="https://x.com/jadrgomez?s=21&t=U6zflNvzFKbTJKtgH6Qc_Q" target="_blank"  class="btn btn-success">Twitter</a>
                 </div>
             </div>
         </div>
@@ -51,9 +135,9 @@
         <p class="mb-0" id="version_app">{{ version }}</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq4cvVmFh9vju3MXgpoK" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
     </script>
 </body>
-</html> 
+</html>
