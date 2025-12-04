@@ -1,61 +1,74 @@
 Proyecto de BIG DATA – Maestría en Analítica de Datos
-Aplicación MinVikVivienda
-Repositorio académico y técnico del proyecto de Big Data desarrollado como parte de la Maestría en Analítica de Datos.
+Aplicación MinVivienda
+
+Repositorio académico y técnico del proyecto desarrollado como parte de la Maestría en Analítica de Datos.
+La aplicación MinVivienda constituye una solución Big Data enfocada en la recolección, procesamiento, indexación y análisis de información normativa y documental relacionada con el Ministerio de Vivienda.
 
 Autor
+
 Jader A. Gómez
-Correo: jgomezo@ucentral.edu.co
+📧 jgomezo@ucentral.edu.co
 
 Descripción del Proyecto
-Este repositorio contiene el desarrollo completo del proyecto MinVikVivienda, una aplicación orientada a la ingestión, procesamiento, análisis y visualización de datos relacionados con información normativa, técnica y documental asociada al Ministerio de Vivienda.
 
-El proyecto combina Web Scraping, ETL, Machine Learning, Almacenamiento NoSQL y servicios de búsqueda inteligentes, integrando herramientas como:
+Este proyecto desarrolla una arquitectura Big Data mediante:
 
-Python + Flask
+Web Scraping avanzado de sitios y documentos públicos
 
-MongoDB Atlas
+Descarga y procesamiento automático de archivos PDF
 
-ElasticSearch
+Normalización y transformación de datos
 
-Web Scraping (PDFs y HTML)
+Indexación y consultas inteligentes con ElasticSearch
 
-Dashboards y análisis exploratorio
+Almacenamiento NoSQL en MongoDB
 
-Automatización y pipelines de datos
+Exposición de funcionalidades a través de una API construida en Flask
 
-El objetivo principal es construir un ecosistema Big Data funcional, capaz de recolectar documentos, indexarlos, analizarlos y facilitar su consulta eficiente.
+El propósito es construir un ecosistema capaz de centralizar documentos, analizarlos y ofrecer búsquedas rápidas y eficientes.
 
 Características Principales
-✔ Extracción automatizada de PDFs y páginas web
-✔ Limpieza, procesamiento y estructuración de datos
-✔ API desarrollada en Flask
-✔ Integración con ElasticSearch para búsquedas avanzadas
-✔ Almacenamiento en MongoDB
-✔ Scripts modulares en la carpeta Helpers
-✔ Arquitectura escalable tipo Big Data
 
-Estructura del Repositorio (sugerida)
+Extracción automatizada de PDFs y contenido web
+
+Limpieza, procesamiento y estructuración de datos
+
+API desarrollada en Flask
+
+Integración con ElasticSearch para búsquedas avanzadas
+
+Almacenamiento flexible en MongoDB
+
+Scripts modulares en la carpeta Helpers/
+
+Arquitectura escalable orientada a análisis y automatización
+
+Estructura del Repositorio
 
 /
-├── app.py
-├── requirements.txt
-├── .env.template
+│── app.py
+│── requirements.txt
+│── .env.template
+│
 ├── Helpers/
-│ ├── MongoDB.py
-│ ├── ElasticSearch.py
-│ ├── Funciones.py
-│ └── WebScraping.py
+│   ├── MongoDB.py
+│   ├── ElasticSearch.py
+│   ├── Funciones.py
+│   └── WebScraping.py
+│
 ├── data/
-│ ├── raw/
-│ ├── processed/
-│ └── pdfs/
+│   ├── raw/
+│   ├── processed/
+│   └── pdfs/
+│
 └── README.md
 
 Tecnologías Utilizadas
-Python 3.10+ – Backend, scraping y ETL
-Flask – Aplicación web
+
+Python 3.10+ – Backend, ETL, scraping
+Flask – API y aplicación web
 MongoDB Atlas – Base de datos NoSQL
 ElasticSearch Cloud – Motor de búsqueda
-BeautifulSoup / Requests – Scraping
+Requests / BeautifulSoup – Web Scraping
 Pandas / NumPy – Transformación de datos
 GitHub – Control de versiones
